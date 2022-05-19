@@ -1,0 +1,23 @@
+server:
+  port: 7001
+
+logging:
+  level:
+    root: INFO
+    se.magnus.microservices: DEBUG
+
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: product-db
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+server:
+  port: 8080
