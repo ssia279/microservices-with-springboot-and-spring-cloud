@@ -45,6 +45,41 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
     return createProductAggregate(product, recommendations, reviews, serviceUtil.getServiceAddress());
   }
 
+  @Override
+  public void createProduct(ProductAggregate body) {
+    try {
+      Product product = new Product(body.getProductId(), body.getName(), body.getWeight(), null);
+      this.integration.createProduct(product);
+
+      if (body.getRecommendations() != null) {
+        body.getRecommendations().forEach(r -> {
+          Recommendation recommendation = new Recommendation(body.getProductId(), r.getRecommendationId(),
+              r.getAuthor(), r.getRate(), r.getContent(), null);
+          this.integration.createRecommendation(recommendation);
+        });
+      }
+
+      if (body.getReviews() != null) {
+        body.getReviews().forEach(r -> {
+          Review review = new Review(body.getProductId(), r.getReviewId(), r.getAuthor(), r.getSubject(),
+              r.getContent(), null);
+          this.integration.createReview(review);
+        });
+      }
+    }
+    catch(RuntimeException ex) {
+      LOG.debug("createCompositeProduct failed", ex);
+      throw  ex;
+    }
+  }
+
+  @Override
+  public void deleteProduct(int productId) {
+    this.integration.deleteProduct(productId);
+    this.integration.deleteRecommendations(productId);
+    this.integration.deleteReviews(productId);
+  }
+
   private ProductAggregate createProductAggregate(
       Product product,
       List<Recommendation> recommendations,
@@ -57,12 +92,12 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
 
     List<RecommendationSummary> recommendationSummaries =
         (recommendations == null) ? null : recommendations.stream()
-            .map(r -> new RecommendationSummary(r.getRecommendationId(), r.getAuthor(), r.getRate()))
+            .map(r -> new RecommendationSummary(r.getRecommendationId(), r.getAuthor(), r.getRate(), r.getContent()))
             .collect(Collectors.toList());
 
     List<ReviewSummary> reviewSummaries =
         (reviews == null) ? null : reviews.stream()
-            .map(r -> new ReviewSummary(r.getReviewId(), r.getAuthor(), r.getSubject()))
+            .map(r -> new ReviewSummary(r.getReviewId(), r.getAuthor(), r.getSubject(), r.getContent()))
             .collect(Collectors.toList());
 
     String productAddress = product.getServiceAddress();
