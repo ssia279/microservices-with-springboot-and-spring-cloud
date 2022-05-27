@@ -5,6 +5,7 @@ logging:
   level:
     root: INFO
     se.magnus.microservices: DEBUG
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
 
 spring:
   data:
@@ -18,6 +19,9 @@ spring:
   config:
     activate:
       on-profile: docker
+  data:
+    mongodb:
+      host: mongodb
 
 server:
   port: 8080

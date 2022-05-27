@@ -50,9 +50,9 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
     this.restTemplate =restTemplate;
     this.mapper = mapper;
 
-    this.productServiceUrl = "http://" + productServiceHost + ":" + productServicePort + "/product/";
-    this.recommendationServiceUrl = "http://" + recommendationServiceHost + ":" + recommendationServicePort + "/recommendation?productId=";
-    this.reviewServiceUrl = "http://" + reviewServiceHost + ":" + reviewServicePort + "/review?productId=";
+    this.productServiceUrl = "http://" + productServiceHost + ":" + productServicePort + "/product";
+    this.recommendationServiceUrl = "http://" + recommendationServiceHost + ":" + recommendationServicePort + "/recommendation";
+    this.reviewServiceUrl = "http://" + reviewServiceHost + ":" + reviewServicePort + "/review";
   }
 
   @Override
@@ -153,6 +153,7 @@ public class ProductCompositeIntegration implements ProductService, Recommendati
 
       Review review = this.restTemplate.postForObject(url, body, Review.class);
       LOG.debug("Create a review with id: {}", review.getProductId());
+      LOG.debug("Review subject is: {}", review.getSubject());
 
       return review;
     }

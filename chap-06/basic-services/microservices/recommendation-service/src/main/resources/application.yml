@@ -7,6 +7,7 @@ logging:
   level:
     root: INFO
     se.magnus: DEBUG
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
 
 spring.data.mongodb:
   host: localhost

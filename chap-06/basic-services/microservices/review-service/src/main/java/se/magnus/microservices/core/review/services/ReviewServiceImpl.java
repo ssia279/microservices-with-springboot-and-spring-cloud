@@ -40,7 +40,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
     catch (DataIntegrityViolationException dive) {
       throw new InvalidInputException("Duplicate key, Product Id: " + body.getProductId()
-          + ", Review Id: " + body.getReviewId());
+          + ", Review Id: " + body.getReviewId() + "subject name: " + body.getSubject());
     }
   }
 
