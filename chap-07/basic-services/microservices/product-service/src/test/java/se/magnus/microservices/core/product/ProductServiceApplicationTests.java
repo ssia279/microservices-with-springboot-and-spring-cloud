@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import reactor.test.StepVerifier;
 import se.magnus.api.core.product.Product;
 import se.magnus.api.event.Event;
+import se.magnus.api.exceptions.InvalidInputException;
 import se.magnus.microservices.core.product.persistence.ProductRepository;
 
 import java.util.function.Consumer;
@@ -51,6 +53,61 @@ class ProductServiceApplicationTests extends MongoDbTestBase{
 	}
 
 	@Test
+	void duplicateError() {
+		int productId = 1;
+
+		assertNull(this.repository.findByProductId(productId).block());
+
+		sendCreateProductEvent(productId);
+
+		assertNotNull(this.repository.findByProductId(productId));
+
+		InvalidInputException thrown = assertThrows(InvalidInputException.class,
+				() -> sendCreateProductEvent(productId), "Expected a InvalidInputException here!");
+		assertEquals("Duplicate key, Product Id: " + productId, thrown.getMessage());
+
+	}
+
+	@Test
+	void deleteProduct() {
+		int productId = 1;
+
+		sendCreateProductEvent(productId);
+		assertNotNull(this.repository.findByProductId(productId).block());
+
+		sendDeleteProductEvent(productId);
+		assertNull(this.repository.findByProductId(productId).block());
+
+		sendDeleteProductEvent(productId);
+	}
+
+	@Test
+	void getProductInvalidParameterString() {
+
+		getAndVerifyProduct("/no-integer", HttpStatus.BAD_REQUEST)
+				.jsonPath("$.path").isEqualTo("/product/no-integer")
+				.jsonPath("$.message").isEqualTo("Type mismatch.");
+	}
+
+	@Test
+	void getProductNotFound() {
+
+		int productIdNotFound = 13;
+		getAndVerifyProduct(productIdNotFound, HttpStatus.NOT_FOUND)
+				.jsonPath("$.path").isEqualTo("/product/" + productIdNotFound)
+				.jsonPath("$.message").isEqualTo("No product found for productId: " + productIdNotFound);
+	}
+
+	@Test
+	void getProductInvalidParameterNegativeValue() {
+		int productIdInvalid = -1;
+
+		getAndVerifyProduct(productIdInvalid, HttpStatus.UNPROCESSABLE_ENTITY)
+				.jsonPath("$.path").isEqualTo("/product/" + productIdInvalid)
+				.jsonPath("$.message").isEqualTo("Invalid productId: " + productIdInvalid);
+	}
+
+	@Test
 	void contextLoads() {
 	}
 
@@ -72,6 +129,11 @@ class ProductServiceApplicationTests extends MongoDbTestBase{
 		Product product = new Product(productId, "Name " + productId, productId, "SA");
 		Event<Integer, Product> event = new Event(Event.Type.CREATE, productId, product);
 		this.messageProcessor.accept(event);
+	}
+
+	private void sendDeleteProductEvent(int productId) {
+		Event<Integer, Product> event = new Event(Event.Type.DELETE, productId, null);
+		messageProcessor.accept(event);
 	}
 
 }

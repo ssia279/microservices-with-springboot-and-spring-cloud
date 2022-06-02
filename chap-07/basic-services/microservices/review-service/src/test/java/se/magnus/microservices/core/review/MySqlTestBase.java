@@ -4,7 +4,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 
-/*
+
 public abstract class MySqlTestBase {
   private static MySQLContainer database = new MySQLContainer("mysql:5.7.32");
 
@@ -19,4 +19,3 @@ public abstract class MySqlTestBase {
     registry.add("spring.datasource.password", database::getPassword);
   }
 }
-*/
